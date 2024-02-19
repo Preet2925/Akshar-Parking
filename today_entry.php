@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <title>Trucks Details</title>
@@ -21,11 +22,11 @@
     <!-- Begin page -->
     <div class="wrapper">
         <!-- ========== Topbar Start ========== -->
-        <?php require "topbar.php" ?>
+        <?php require "topbar.php"; ?>
         <!-- ========== Topbar End ========== -->
 
         <!-- ========== Left Sidebar Start ========== -->
-        <?php require "left-sidebar.php" ?>
+        <?php require "left-sidebar.php"; ?>
         <!-- ========== Left Sidebar End ========== -->
 
         <!-- ============================================================== -->
@@ -39,7 +40,7 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="page-title-box">
-                                <h4 class="page-title">Trucks Details</h4>
+                                <h4 class="page-title">Today Entries Details</h4>
                             </div>
                         </div>
                     </div>
@@ -57,41 +58,39 @@
                                                     <th>Truck Number</th>
                                                     <th>Driver Name</th>
                                                     <th>Phone Number</th>
-                                                    <th>Date</th>
-                                                    <th>Time</th>
+                                                    <th>Date & Time</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php
                                                 require "conn.php";
-                                                $sql = "SELECT * FROM AddTruckDetails ORDER BY InvoiceId DESC";
+                                                $today = date("Y-m-d");
+                                                $sql = "SELECT * FROM AddTruckDetails WHERE DATE(DateTime) = '$today' ORDER BY id DESC";
                                                 $result = $conn->query($sql);
-                                                if ($result) {
+                                                if ($result->num_rows > 0) {
                                                     while ($row = $result->fetch_assoc()) {
-                                                        if ($row["Flag"] == 1) {
-                                                            continue; // Skip this row
-                                                        }
                                                         echo "<tr>";
-                                                        echo "<td>" . $row["InvoiceId"] . "</td>";
+                                                        echo "<td>" . $row["id"] . "</td>";
                                                         echo "<td>" . $row["TruckNumber"] . "</td>";
                                                         echo "<td>" . $row["DriverName"] . "</td>";
                                                         echo "<td>" . $row["PhoneNumber"] . "</td>";
-                                                        echo "<td>" . $row["Date"] . "</td>";
-                                                        echo "<td>" . $row["Time"] . "</td>";
-                                                        echo "<td>
-                                                                <form action='checkout.php' method='POST'>
-                                                                    <input type='hidden' name='InvoiceId' value='" . $row["InvoiceId"] . "'>
+                                                        echo "<td>" . $row["DateTime"] . "</td>";
+                                                        echo "<td>";
+                                                        if ($row["Flag"] == 0) {
+                                                            echo "<form action='checkout.php' method='POST'>
+                                                                    <input type='hidden' name='id' value='" . $row["id"] . "'>
                                                                     <input type='hidden' name='TruckNumber' value='" . $row["TruckNumber"] . "'>
                                                                     <input type='hidden' name='DriverName' value='" . $row["DriverName"] . "'>
                                                                     <input type='hidden' name='PhoneNumber' value='" . $row["PhoneNumber"] . "'>
                                                                     <button class='btn btn-primary' type='submit'>Checkout</button>
-                                                                </form>
-                                                              </td>";
+                                                                </form>";
+                                                        }
+                                                        echo "</td>";
                                                         echo "</tr>";
                                                     }
                                                 } else {
-                                                    echo "<tr><td colspan='7'>No records found</td></tr>";
+                                                    echo "<tr><td colspan='6'>No records found</td></tr>";
                                                 }
                                                 $conn->close();
                                                 ?>
