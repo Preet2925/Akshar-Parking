@@ -1,11 +1,13 @@
 <?php
 require "conn.php";
+date_default_timezone_set('Asia/Kolkata');
+
 // Check if form is submitted and the 'make_bill' button is clicked
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_bill'])) {
-    $InvoiceId = $_POST["InvoiceId"];
+    $id = $_POST["id"];
     
-    // Update flag value to 1 for the specified InvoiceId
-    $updateSql = "UPDATE addtruckdetails SET Flag = 1 WHERE InvoiceId = '$InvoiceId'";
+    // Update flag value to 1 for the specified id
+    $updateSql = "UPDATE addtruckdetails SET Flag = 1 WHERE id = '$id'";
     if ($conn->query($updateSql) === TRUE) {
         // Display success message if the update is successful
         echo '<script>alert("Flag value updated to 1");</script>';
@@ -14,6 +16,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_bill'])) {
         echo "Error updating record: " . $conn->error;
     }
 }
+
+// Fetch truck data from database
+$id = isset($_POST['id']) ? mysqli_real_escape_string($conn, $_POST['id']) : '';
+$fetchSql = "SELECT * FROM addtruckdetails WHERE id = '$id'";
+$result = $conn->query($fetchSql);
+$row = $result->fetch_assoc();
+$entryDateTime = $row['DateTime'];
+$currentDateTime = date('Y-m-d\TH:i');
+
+$entryDateTimeObj = new DateTime($entryDateTime);
+$currentDateTimeObj = new DateTime($currentDateTime);
+$interval = $entryDateTimeObj->diff($currentDateTimeObj);
+$totalMinutes = $interval->days * 24 * 60 + $interval->h * 60 + $interval->i;
+$totalHours = floor($totalMinutes / 60);
+$remainingMinutes = $totalMinutes % 60;
+$dtime = $totalHours + ($interval->i/60);
+
+// Calculate parking charge based on the pricing plan
+if ($dtime <= 12) {
+    $parkingCharge = 50;
+} elseif ($dtime <= 24) {
+    $parkingCharge = 100;
+} else {
+    $additionalHours = $dtime - 24;
+    $additionalCharge = ceil($additionalHours / 12) * 50;
+    $parkingCharge = 100 + $additionalCharge;
+}
+
 
 ?>
 
@@ -70,16 +100,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_bill'])) {
                                             <label class="form-label" for="validationCustom01">Invoice ID</label>
                                             <div class="input-group">
                                                 <!-- Display the Invoice ID -->
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    id="validationCustom01"
-                                                    placeholder="Invoice Id"
-                                                    value="<?php echo isset($_POST['InvoiceId']) ? $_POST['InvoiceId'] : ''; ?>"
-                                                    readonly
-                                                />
+                                                <input type="text" class="form-control" id="validationCustom01" placeholder="Invoice Id" value="<?php echo isset($_POST['id']) ? $_POST['id'] : ''; ?>" readonly />
                                                 <!-- Store the Invoice ID in a hidden field for form submission -->
-                                                <input type="hidden" name="InvoiceId" value="<?php echo isset($_POST['InvoiceId']) ? $_POST['InvoiceId'] : ''; ?>">
+                                                <input type="hidden" name="id" value="<?php echo isset($_POST['id']) ? $_POST['id'] : ''; ?>" />
                                                 <div class="valid-feedback">Looks good!</div>
                                             </div>
                                         </div>
@@ -87,16 +110,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_bill'])) {
                                         <div class="mb-3">
                                             <label class="form-label" for="validationCustom02">Truck Number</label>
                                             <!-- Display the Truck Number -->
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                id="validationCustom02"
-                                                placeholder="Truck Number"
-                                                value="<?php echo isset($_POST['TruckNumber']) ? $_POST['TruckNumber'] : ''; ?>"
-                                                readonly
-                                            />
+                                            <input type="text" class="form-control" id="validationCustom02" placeholder="Truck Number" value="<?php echo isset($_POST['TruckNumber']) ? $_POST['TruckNumber'] : ''; ?>" readonly />
                                             <!-- Store the Truck Number in a hidden field for form submission -->
-                                            <input type="hidden" name="TruckNumber" value="<?php echo isset($_POST['TruckNumber']) ? $_POST['TruckNumber'] : ''; ?>">
+                                            <input type="hidden" name="TruckNumber" value="<?php echo isset($_POST['TruckNumber']) ? $_POST['TruckNumber'] : ''; ?>" />
                                         </div>
 
                                         <div class="mb-3">
@@ -114,23 +130,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_bill'])) {
                                                     readonly
                                                 />
                                                 <!-- Store the Phone Number in a hidden field for form submission -->
-                                                <input type="hidden" name="PhoneNumber" value="<?php echo isset($_POST['PhoneNumber']) ? $_POST['PhoneNumber'] : ''; ?>">
+                                                <input type="hidden" name="PhoneNumber" value="<?php echo isset($_POST['PhoneNumber']) ? $_POST['PhoneNumber'] : ''; ?>" />
                                             </div>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label" for="validationCustom03">Checkout Date</label>
-                                            <!-- Display and store the current date -->
-                                            <input type="date" class="form-control" id="validationCustom03" value="<?php echo date('Y-m-d'); ?>" readonly />
-                                            <input type="hidden" name="Date" value="<?php echo date('Y-m-d'); ?>">
+                                            <label class="form-label" for="validationCustom03">Current Date and Time</label>
+                                            <input type="datetime-local" class="form-control" name="DateTime" id="validationCustom03" value="<?php echo $currentDateTime; ?>" required readonly />
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label" for="validationCustom04">
+                                                <?php echo "Total Time : $totalHours Hours & $remainingMinutes minutes"; ?>
+                                            </label>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label" for="validationCustom04">Checkout Time</label>
-                                            <!-- Display and store the current time -->
-                                            <input type="time" class="form-control" id="validationCustom04" value="<?php echo date('H:i'); ?>" readonly />
-                                            <input type="hidden" name="Time" value="<?php echo date('H:i'); ?>">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label" for="validationCustom04">Total Time in minute :</label>
+                                            <label class="form-label" for="validationCustom04">
+                                                <?php echo "Parking Charge: $parkingCharge INR"; ?>
+                                            </label>
                                         </div>
                                         <!-- Submit button to make a bill -->
                                         <button class="btn btn-danger" type="submit" name="make_bill">Make A Bill</button>

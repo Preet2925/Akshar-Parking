@@ -20,12 +20,12 @@
 <div class="wrapper">
 
     <!-- ========== Topbar Start ========== -->
-    <?php require "topbar.php" ?>
+    <?php require "topbar.php"; ?>
     <!-- ========== Topbar End ========== -->
 
 
     <!-- ========== Left Sidebar Start ========== -->
-    <?php require "left-sidebar.php" ?>
+    <?php require "left-sidebar.php"; ?>
     <!-- ========== Left Sidebar End ========== -->
 
     <!-- ============================================================== -->
@@ -96,20 +96,21 @@ function validateDriverName(input) {
 </div>
 
 <div class="mb-3">
-    <label class="form-label" for="validationCustom03">Date</label>
-    <input type="date" class="form-control" name="Date" id="validationCustom03" value="<?php echo date('Y-m-d'); ?>" readonly>
+    <label class="form-label" for="validationCustom03">Date and Time</label>
+    <?php
+    date_default_timezone_set('Asia/Kolkata');
+    $currentDateTime = date('Y-m-d\TH:i');
+    ?>
+    <input type="datetime-local" class="form-control" name="DateTime" id="validationCustom03" value="<?php echo $currentDateTime; ?>" required readonly>
 </div>
+
 
 
 <?php
-date_default_timezone_set('Asia/Kolkata');
-$currentTime = date('H:i');
+date_default_timezone_set("Asia/Kolkata");
+$currentTime = date("H:i");
 ?>
 
-<div class="mb-3">
-    <label class="form-label" for="validationCustom04">Time</label>
-    <input type="text" class="form-control" name="Time" id="validationCustom04" value="<?php echo $currentTime; ?>" readonly>
-</div>
 
 
                                     <button class="btn btn-primary" type="submit">Add Truck Details</button>
@@ -146,19 +147,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $TruckNumber = $_POST["TruckNumber"];
     $DriverName = $_POST["DriverName"];
     $PhoneNumber = $_POST["PhoneNumber"];
-    $Date = $_POST["Date"];
-    $Time = $_POST["Time"];
-    
+    $DateTime = $_POST["DateTime"];
+
     // Insert data into database
-    $sql = "INSERT INTO AddTruckDetails (TruckNumber, DriverName, PhoneNumber, Date, Time) VALUES ('$TruckNumber', '$DriverName', '$PhoneNumber', '$Date', '$Time')";
-    
-    if ($conn->query($sql) === TRUE) {
+    $sql = "INSERT INTO AddTruckDetails (TruckNumber, DriverName, PhoneNumber, DateTime) VALUES ('$TruckNumber', '$DriverName', '$PhoneNumber', '$DateTime')";
+
+    if ($conn->query($sql) === true) {
         // Display success message
         echo '<script>alert("Data Inserted"); window.location = "view-details.php";</script>';
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
     }
-    
+
     $conn->close();
 }
+
 ?>
