@@ -31,17 +31,19 @@ $interval = $entryDateTimeObj->diff($currentDateTimeObj);
 $totalMinutes = $interval->days * 24 * 60 + $interval->h * 60 + $interval->i;
 $totalHours = floor($totalMinutes / 60);
 $remainingMinutes = $totalMinutes % 60;
+$dtime = $totalHours + ($interval->i/60);
 
 // Calculate parking charge based on the pricing plan
-if ($totalHours <= 12) {
+if ($dtime <= 12) {
     $parkingCharge = 50;
-} elseif ($totalHours <= 24) {
+} elseif ($dtime <= 24) {
     $parkingCharge = 100;
 } else {
-    $additionalHours = $totalHours - 24;
+    $additionalHours = $dtime - 24;
     $additionalCharge = ceil($additionalHours / 12) * 50;
     $parkingCharge = 100 + $additionalCharge;
 }
+
 
 ?>
 
